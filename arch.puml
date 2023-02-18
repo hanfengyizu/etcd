@@ -1,0 +1,15 @@
+@startuml
+:User;
+:put;
+if (request body >1.5MB ?) then (no)
+    stop
+else (yes)
+if (db quota check>2GB) then (yes)
+    : no space;
+    stop
+    else (yes)
+endif
+:check permission if need;
+stop
+endif
+@enduml

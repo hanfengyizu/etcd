@@ -29,6 +29,7 @@ func Main(args []string) {
 		cmd := args[1]
 		switch cmd {
 		case "gateway", "grpc-proxy":
+			// 启动 gateway（4层）或 grpc-proxy(7 层)
 			if err := rootCmd.Execute(); err != nil {
 				fmt.Fprint(os.Stderr, err)
 				os.Exit(1)
@@ -36,7 +37,7 @@ func Main(args []string) {
 			return
 		}
 	}
-
+	//	启动 etcd 或 proxyV2(仅支持 v2 api)
 	startEtcdOrProxyV2(args)
 }
 

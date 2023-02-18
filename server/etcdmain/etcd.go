@@ -79,7 +79,7 @@ func startEtcdOrProxyV2(args []string) {
 			logger.Sync()
 		}
 	}()
-
+	// 根据传入的参数，修正initCluster信息
 	defaultHost, dhErr := (&cfg.ec).UpdateDefaultClusterFromName(defaultInitialCluster)
 	if defaultHost != "" {
 		lg.Info(
@@ -101,7 +101,7 @@ func startEtcdOrProxyV2(args []string) {
 
 	var stopped <-chan struct{}
 	var errc <-chan error
-
+	// 不能同时包含 member 和 proxy(3.6禁用),若含有 member则启动，proxy 则抛异常；否则新建 member
 	which := identifyDataDirOrDie(cfg.ec.GetLogger(), cfg.ec.Dir)
 	if which != dirEmpty {
 		lg.Info(

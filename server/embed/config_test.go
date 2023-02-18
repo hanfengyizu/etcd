@@ -17,6 +17,7 @@ package embed
 import (
 	"errors"
 	"fmt"
+	"go.etcd.io/etcd/pkg/v3/netutil"
 	"net"
 	"net/url"
 	"os"
@@ -428,4 +429,9 @@ func TestLogRotation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetDefaultHost(t *testing.T) {
+	defaultHostname, defaultHostStatus = netutil.GetDefaultHost()
+	t.Log(defaultHostname, defaultHostStatus)
 }

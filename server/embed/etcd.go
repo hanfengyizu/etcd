@@ -112,6 +112,7 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 	}()
 
 	if !cfg.SocketOpts.Empty() {
+		// 支持重复利用 socket
 		cfg.logger.Info(
 			"configuring socket options",
 			zap.Bool("reuse-address", cfg.SocketOpts.ReuseAddress),
@@ -122,6 +123,7 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		"configuring peer listeners",
 		zap.Strings("listen-peer-urls", e.cfg.getLPURLs()),
 	)
+	// 配置 peer listener
 	if e.Peers, err = configurePeerListeners(cfg); err != nil {
 		return e, err
 	}
@@ -130,6 +132,7 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 		"configuring client listeners",
 		zap.Strings("listen-client-urls", e.cfg.getLCURLs()),
 	)
+	// 配置 client listener
 	if e.sctxs, err = configureClientListeners(cfg); err != nil {
 		return e, err
 	}
@@ -252,6 +255,8 @@ func StartEtcd(inCfg *Config) (e *Etcd, err error) {
 
 	// newly started member ("memberInitialized==false")
 	// does not need corruption check
+	// 重启则根据 initialCorruptCheck 检查
+	// 如果压缩一致，但 db hash 值不一致则认为数据不一致
 	if memberInitialized && srvcfg.InitialCorruptCheck {
 		if err = e.Server.CorruptionChecker().InitialCheck(); err != nil {
 			// set "EtcdServer" to nil, so that it does not block on "EtcdServer.Close()"
@@ -492,7 +497,9 @@ func (e *Etcd) Err() <-chan error {
 	return e.errc
 }
 
+// 配置 peer listener
 func configurePeerListeners(cfg *Config) (peers []*peerListener, err error) {
+	// 更新加密套件
 	if err = updateCipherSuites(&cfg.PeerTLSInfo, cfg.CipherSuites); err != nil {
 		return nil, err
 	}
@@ -512,6 +519,7 @@ func configurePeerListeners(cfg *Config) (peers []*peerListener, err error) {
 		if err == nil {
 			return
 		}
+		// 出错则，关闭之前打开的流
 		for i := range peers {
 			if peers[i] != nil && peers[i].close != nil {
 				cfg.logger.Warn(

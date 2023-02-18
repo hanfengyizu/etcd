@@ -769,6 +769,7 @@ func (cfg *Config) Validate() error {
 	// as one additional peerURL of the existing member which has the same "default" name,
 	// because each member can have multiple client or peer URLs.
 	// Please refer to https://github.com/etcd-io/etcd/issues/13757
+	// 集群内部，name不能相同
 	if cfg.Name == DefaultName {
 		cfg.logger.Warn(
 			"it isn't recommended to use default name, please set a value for --name. "+
