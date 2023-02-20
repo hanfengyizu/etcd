@@ -36,7 +36,8 @@ func PurgeFileWithDoneNotify(lg *zap.Logger, dirname string, suffix string, max 
 
 // purgeFile is the internal implementation for PurgeFile which can post purged files to purgec if non-nil.
 // if donec is non-nil, the function closes it to notify its exit.
-func purgeFile(lg *zap.Logger, dirname string, suffix string, max uint, interval time.Duration, stop <-chan struct{}, purgec chan<- string, donec chan<- struct{}) <-chan error {
+func purgeFile(lg *zap.Logger, dirname string, suffix string, max uint, interval time.Duration,
+	stop <-chan struct{}, purgec chan<- string, donec chan<- struct{}) <-chan error {
 	if lg == nil {
 		lg = zap.NewNop()
 	}

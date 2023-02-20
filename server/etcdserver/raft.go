@@ -414,6 +414,7 @@ func (r *raftNode) resumeSending() {
 // This can be used for fast-forwarding election
 // ticks in multi data-center deployments, thus
 // speeding up election process.
+// 通过快速增加逻辑时钟，从而加速选举
 func (r *raftNode) advanceTicks(ticks int) {
 	for i := 0; i < ticks; i++ {
 		r.tick()

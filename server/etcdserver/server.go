@@ -525,8 +525,10 @@ func (s *EtcdServer) adjustTicks() {
 // should be implemented in goroutines.
 func (s *EtcdServer) Start() {
 	s.start()
+	// GoAttach 异步执行任务
 	s.GoAttach(func() { s.adjustTicks() })
 	s.GoAttach(func() { s.publishV3(s.Cfg.ReqTimeout()) })
+	// 清理文件
 	s.GoAttach(s.purgeFile)
 	s.GoAttach(func() { monitorFileDescriptor(s.Logger(), s.stopping) })
 	s.GoAttach(s.monitorClusterVersions)
@@ -592,6 +594,7 @@ func (s *EtcdServer) start() {
 	go s.run()
 }
 
+// 异步定时清理 wal 或 snapshot 文件
 func (s *EtcdServer) purgeFile() {
 	lg := s.Logger()
 	var dberrc, serrc, werrc <-chan error
@@ -1697,6 +1700,7 @@ func (s *EtcdServer) sync(timeout time.Duration) {
 // with the static clientURLs of the server.
 // The function keeps attempting to register until it succeeds,
 // or its server is stopped.
+// 使用v3 api 注册 server 信息到集群中，一致尝试知道成功或 server 关闭
 func (s *EtcdServer) publishV3(timeout time.Duration) {
 	req := &membershippb.ClusterMemberAttrSetRequest{
 		Member_ID: uint64(s.MemberId()),
