@@ -528,13 +528,15 @@ func (s *EtcdServer) Start() {
 	// GoAttach 异步执行任务
 	s.GoAttach(func() { s.adjustTicks() })
 	s.GoAttach(func() { s.publishV3(s.Cfg.ReqTimeout()) })
-	// 清理文件
+	// 定时清理文件（snapshot\wal\db）
 	s.GoAttach(s.purgeFile)
+	// 监控文件 FD
 	s.GoAttach(func() { monitorFileDescriptor(s.Logger(), s.stopping) })
 	s.GoAttach(s.monitorClusterVersions)
 	s.GoAttach(s.monitorStorageVersion)
 	s.GoAttach(s.linearizableReadLoop)
 	s.GoAttach(s.monitorKVHash)
+	// 一致性检查
 	s.GoAttach(s.monitorCompactHash)
 	s.GoAttach(s.monitorDowngrade)
 }
@@ -2163,6 +2165,7 @@ func (s *EtcdServer) StorageVersion() *semver.Version {
 }
 
 // monitorClusterVersions every monitorVersionInterval checks if it's the leader and updates cluster version if needed.
+// 每 4s 检查一次 谁是 leader 以及汲集群的版本
 func (s *EtcdServer) monitorClusterVersions() {
 	monitor := serverversion.NewMonitor(s.Logger(), NewServerVersionAdapter(s))
 	for {
@@ -2176,6 +2179,7 @@ func (s *EtcdServer) monitorClusterVersions() {
 		if s.Leader() != s.MemberId() {
 			continue
 		}
+		// 只有主才可以更改 cluster 版本
 		err := monitor.UpdateClusterVersionIfNeeded()
 		if err != nil {
 			s.lg.Error("Failed to monitor cluster version", zap.Error(err))

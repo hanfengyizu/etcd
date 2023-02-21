@@ -64,6 +64,7 @@ func (m *Monitor) UpdateClusterVersionIfNeeded() error {
 // decideClusterVersion decides whether to change cluster version and its next value.
 // New cluster version is based on the members versions server and whether cluster is downgrading.
 // Returns nil if cluster version should be left unchanged.
+// 默认取最小 server版本
 func (m *Monitor) decideClusterVersion() (*semver.Version, error) {
 	clusterVersion := m.s.GetClusterVersion()
 	minimalServerVersion := m.membersMinimalServerVersion()
@@ -81,6 +82,7 @@ func (m *Monitor) decideClusterVersion() (*semver.Version, error) {
 		if downgrade.GetTargetVersion().Equal(*clusterVersion) {
 			return nil, nil
 		}
+		// 防止大版本降级
 		if !isValidDowngrade(clusterVersion, downgrade.GetTargetVersion()) {
 			m.lg.Error("Cannot downgrade from cluster-version to downgrade-target",
 				zap.String("downgrade-target", downgrade.TargetVersion),
